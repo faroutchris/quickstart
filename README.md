@@ -133,3 +133,7 @@ barba.init({
 ```
 
 For more information on how to install and use Barba.js, visit https://barba.js.org
+
+## Testing
+
+See TESTING.md for how to write and run tests with Japa, including coverage and CLI flags.
