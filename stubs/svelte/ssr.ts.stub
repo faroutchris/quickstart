@@ -1,0 +1,22 @@
+{{{
+  exports({ to: app.makePath('resources/js/ssr.ts') })
+}}}
+/// <reference types="vite/client" />
+
+import { render } from 'svelte/server'
+import type { Component } from 'svelte'
+import type { SSRClientConfig } from '@reddigital/quickstart/types'
+
+const config: SSRClientConfig<Component> = {
+  async resolve(componentPath) {
+    const components = import.meta.glob<{ default: Component }>('../components/**/*.svelte')
+    const component = await components['../components/' + componentPath + '.svelte']()
+    return component.default
+  },
+  render(component, props) {
+    const result = render(component, { props })
+    return result.body
+  },
+}
+
+export default config

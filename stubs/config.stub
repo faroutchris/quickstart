@@ -1,0 +1,25 @@
+{{{
+  exports({ to: app.configPath('quickstart.ts') })
+}}}
+import { defineConfig } from '@reddigital/quickstart'
+
+const quickstartConfig = defineConfig({
+  /**
+   * Path to the root directory of your components
+   * This affects how the Vite plugin optimizes component discovery
+   */
+  componentDir: 'resources/js/components',
+  
+  /**
+   * SSR (Server-Side Rendering) configuration
+   */
+  ssr: {
+    /**
+     * Entry point for SSR bundle
+     * This file should export your SSR configuration
+     */
+    entryPoint: 'resources/js/ssr.ts',
+  },
+})
+
+export default quickstartConfig

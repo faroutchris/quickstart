@@ -1,0 +1,21 @@
+{{{
+  exports({ to: app.makePath('resources/js/ssr.ts') })
+}}}
+/// <reference types="vite/client" />
+
+import { h, type ComponentType } from 'preact'
+import renderToString from 'preact-render-to-string'
+import type { SSRClientConfig } from '@reddigital/quickstart/types'
+
+const config: SSRClientConfig<ComponentType> = {
+  async resolve(componentPath) {
+    const components = import.meta.glob<{ default: ComponentType }>('../components/**/*.tsx')
+    const component = await components['../components/' + componentPath + '.tsx']()
+    return component.default
+  },
+  render(component, props) {
+    return renderToString(h(component, props))
+  },
+}
+
+export default config

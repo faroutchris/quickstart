@@ -1,0 +1,14 @@
+{{{
+  exports({ to: app.makePath('resources/js/app.ts') })
+}}}
+import { init } from '@reddigital/quickstart/init'
+import { hydrate, type Component } from 'svelte'
+
+init<Component>({
+  resolve: async (path: string) => {
+    const components = import.meta.glob<{ default: Component }>('../components/**/*.svelte')
+    const component = await components['../components/' + path + '.svelte']()
+    return component.default
+  },
+  hydrate,
+})

@@ -1,0 +1,17 @@
+{{{
+  exports({ to: app.makePath('resources/js/app.ts') })
+}}}
+import { init } from '@reddigital/quickstart/init'
+import { hydrate } from 'preact'
+import { h, type ComponentType } from 'preact'
+
+init<ComponentType>({
+  resolve: async (path: string) => {
+    const components = import.meta.glob<{ default: ComponentType }>('../components/**/*.tsx')
+    const component = await components['../components/' + path + '.tsx']()
+    return component.default
+  },
+  hydrate: (Component, { target, props }) => {
+    hydrate(h(Component, props), target)
+  },
+})
