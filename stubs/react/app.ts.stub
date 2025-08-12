@@ -1,0 +1,17 @@
+{{{
+  exports({ to: app.makePath('resources/js/app.ts') })
+}}}
+import { init } from '@reddigital/quickstart/init'
+import { hydrateRoot } from 'react-dom/client'
+import { type ComponentType } from 'react'
+
+init<ComponentType>({
+  resolve: async (path: string) => {
+    const components = import.meta.glob<{ default: ComponentType }>('../components/**/*.tsx')
+    const component = await components['../components/' + path + '.tsx']()
+    return component.default
+  },
+  hydrate: (Component, { target, props }) => {
+    hydrateRoot(target, <Component {...props} />)
+  },
+})

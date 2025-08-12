@@ -1,0 +1,16 @@
+{{{
+  exports({ to: app.makePath('resources/js/app.ts') })
+}}}
+import { init } from '@reddigital/quickstart/init'
+import { createSSRApp, type DefineComponent } from 'vue'
+
+init<DefineComponent>({
+  resolve: async (path: string) => {
+    const components = import.meta.glob<{ default: DefineComponent }>('../components/**/*.vue')
+    const component = await components['../components/' + path + '.vue']()
+    return component.default
+  },
+  hydrate: (Component, { target, props }) => {
+    createSSRApp(Component, props).mount(target)
+  },
+})
