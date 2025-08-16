@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-import { media, resetInputs, visible } from './utils.js'
+import { media, resetInputs, safeJsonParse, visible } from './utils.js'
 
 import { ClientConfig } from '../types.js'
 
@@ -43,7 +43,7 @@ export function init<T>({ resolve, hydrate }: ClientConfig<T>) {
     async hydrate() {
       const src = this.getAttribute('src') ?? ''
       const propsData = this.getAttribute('data-props')
-      const props = propsData ? JSON.parse(propsData) : {}
+      const props = propsData ? safeJsonParse(propsData) : {}
 
       const Component = await resolve(src)
       hydrate(Component, { target: this, props })

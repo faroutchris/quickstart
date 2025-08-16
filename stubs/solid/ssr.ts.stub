@@ -1,0 +1,21 @@
+{{{
+  exports({ to: app.makePath('resources/js/ssr.tsx') })
+}}}
+/// <reference types="vite/client" />
+
+import { renderToString } from 'solid-js/web'
+import type { Component } from 'solid-js'
+import type { SSRClientConfig } from '@reddigital/quickstart/types'
+
+const config: SSRClientConfig<Component> = {
+  async resolve(componentPath) {
+    const components = import.meta.glob<{ default: Component }>('../components/**/*.tsx')
+    const component = await components['../components/' + componentPath + '.tsx']()
+    return component.default
+  },
+  render(component, props) {
+    return renderToString(() => <component {...props} />)
+  },
+}
+
+export default config

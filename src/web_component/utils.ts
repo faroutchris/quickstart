@@ -91,3 +91,12 @@ export const media = ({
     mediaQuery.removeEventListener('change', handleChange)
   }
 }
+
+export const safeJsonParse = (json: string) => {
+  try {
+    return JSON.parse(json)
+  } catch (error) {
+    console.warn('Invalid JSON in data-props attribute:', error)
+    return {}
+  }
+}

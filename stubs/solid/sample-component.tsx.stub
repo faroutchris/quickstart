@@ -1,0 +1,18 @@
+{{{
+  exports({ to: app.makePath('resources/components/sample.tsx') })
+}}}
+import { createSignal } from 'solid-js'
+
+function Counter() {
+  const [count, setCount] = createSignal(0)
+
+  return (
+    <div class="counter-container">
+      <button onClick={() => setCount(count() - 1)}>Decrement</button>
+      <input value={count()} readOnly />
+      <button onClick={() => setCount(count() + 1)}>Increment</button>
+    </div>
+  )
+}
+
+export default Counter

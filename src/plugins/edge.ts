@@ -26,6 +26,10 @@ export const edgePluginQuickstart: (serverRenderer: ServerRenderer) => PluginFn<
         props: Record<string, any> = {},
         options: { lazy?: boolean; media?: string } = {}
       ) => {
+        if (!componentPath || !componentPath.trim()) {
+          throw new Error('The @quick tag requires a component path as an argument')
+        }
+
         const html = await serverRenderer.renderComponent(componentPath, props)
         const propsJson = encode(JSON.stringify(props))
 
@@ -46,9 +50,9 @@ export const edgePluginQuickstart: (serverRenderer: ServerRenderer) => PluginFn<
       block: false,
       seekable: true,
       compile(parser, buffer, { filename, loc, properties }) {
-        const componentPath = properties.jsArg
+        const args = properties.jsArg
 
-        if (!componentPath.trim()) {
+        if (!args.trim()) {
           throw new EdgeError(
             `The @quick tag requires a component path as an argument`,
             'E_MISSING_ARGUMENT',
@@ -58,7 +62,7 @@ export const edgePluginQuickstart: (serverRenderer: ServerRenderer) => PluginFn<
 
         // Parse the properties to extract props and options
         const parsed = parser.utils.transformAst(
-          parser.utils.generateAST(componentPath, loc, filename),
+          parser.utils.generateAST(args, loc, filename),
           filename,
           parser
         )
@@ -69,10 +73,18 @@ export const edgePluginQuickstart: (serverRenderer: ServerRenderer) => PluginFn<
           const component = expressions[0]
           const props = expressions[1] || null
           const options = expressions[2] || null
-
           const componentCode = parser.utils.stringify(component)
+
           const propsCode = props ? parser.utils.stringify(props) : '{}'
           const optionsCode = options ? parser.utils.stringify(options) : '{}'
+
+          if (!componentCode.trim()) {
+            throw new EdgeError(
+              `The @quick tag requires a component path as an argument`,
+              'E_MISSING_ARGUMENT',
+              { line: loc.start.line, col: loc.start.col, filename }
+            )
+          }
 
           buffer.writeExpression(
             `out += await state.quick(${componentCode}, ${propsCode}, ${optionsCode});`,
@@ -82,6 +94,13 @@ export const edgePluginQuickstart: (serverRenderer: ServerRenderer) => PluginFn<
         } else {
           // Single argument - just the component path
           const componentCode = parser.utils.stringify(parsed)
+          if (!componentCode.trim()) {
+            throw new EdgeError(
+              `The @quick tag requires a component path as an argument`,
+              'E_MISSING_ARGUMENT',
+              { line: loc.start.line, col: loc.start.col, filename }
+            )
+          }
           buffer.writeExpression(
             `out += await state.quick(${componentCode}, {}, {});`,
             filename,

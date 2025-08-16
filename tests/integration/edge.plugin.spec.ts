@@ -84,20 +84,16 @@ test.group('Edge Plugin - @quick tag', () => {
     )
   })
 
-  test('throws error when component path is empty string', async ({ assert }) => {
+  test('rejects when component path is empty string', async ({ assert }) => {
     edge.use(edgePluginQuickstart(fakeRenderer('<span/>') as any))
 
-    // Empty string should not throw error at parse time, but should result in empty component
-    const out = await edge.renderRaw(`@quick('')`)
-    assert.include(out, `src=""`)
+    await assert.rejects(() => edge.renderRaw(`@quick('')`))
   })
 
-  test('throws error when component path is whitespace only', async ({ assert }) => {
+  test('rejects when component path is whitespace only', async ({ assert }) => {
     edge.use(edgePluginQuickstart(fakeRenderer('<span/>') as any))
 
-    // Whitespace-only should not throw error, but should render the whitespace path
-    const out = await edge.renderRaw(`@quick('   ')`)
-    assert.include(out, `src="   "`)
+    await assert.rejects(() => edge.renderRaw(`@quick('   ')`))
   })
 
   test('handles complex props with nested objects and arrays', async ({ assert }) => {
