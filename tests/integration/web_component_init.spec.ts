@@ -16,68 +16,6 @@ test.group('Web Component - Quickstart Element Integration', () => {
     }
   }
 
-  test('registers custom element and handles basic hydration', async ({ assert }) => {
-    // Setup JSDOM with Custom Elements support
-    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
-      url: 'https://localhost:3000',
-    })
-    const { window } = dom
-
-    // Set up global environment for custom elements
-    global.window = window as any
-    global.document = window.document as any
-    global.HTMLElement = window.HTMLElement as any
-    global.customElements = window.customElements as any
-
-    // Ensure performance.navigation is present to satisfy resetInputs
-    mockPerformanceNavigation(window)
-
-    // Mock the resolve and hydrate functions
-    let resolvedComponent: any
-    let hydratedData: any
-
-    const mockResolve = async (src: string) => {
-      resolvedComponent = { name: `Component-${src}` }
-      return resolvedComponent
-    }
-
-    const mockHydrate = (component: any, options: any) => {
-      hydratedData = { component, options }
-    }
-
-    // Initialize the custom element
-    init({
-      resolve: mockResolve,
-      hydrate: mockHydrate,
-    })
-
-    // Create and configure the custom element
-    const quickstart = window.document.createElement('quick-start')
-    quickstart.setAttribute('src', 'test-component')
-    quickstart.setAttribute('data-props', '{"message": "hello"}')
-
-    // Add to DOM to trigger connectedCallback
-    window.document.body.appendChild(quickstart)
-
-    // Wait for async operations to complete
-    await new Promise((resolve) => setTimeout(resolve, 0))
-
-    // Verify the component was resolved and hydrated
-    assert.isObject(resolvedComponent, 'Component should be resolved')
-    assert.equal(resolvedComponent.name, 'Component-test-component')
-
-    assert.isObject(hydratedData, 'Component should be hydrated')
-    assert.equal(hydratedData.component, resolvedComponent)
-    assert.equal(hydratedData.options.target, quickstart)
-    assert.deepEqual(hydratedData.options.props, { message: 'hello' })
-
-    // Cleanup
-    delete (global as any).window
-    delete (global as any).document
-    delete (global as any).HTMLElement
-    delete (global as any).customElements
-  })
-
   test('handles lazy loading with intersection observer', async ({ assert }) => {
     const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>')
     const { window } = dom

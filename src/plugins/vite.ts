@@ -27,7 +27,7 @@ export interface QuickstartPluginOptions {
   /**
    * Used to detect which dependencies vite needs to optimize
    */
-  framework?: 'svelte' | 'preact'
+  framework?: 'svelte' | 'preact' | 'react' | 'vue' | 'solid'
 }
 
 function getFrameworkDependencies(framework: string | null) {
@@ -42,11 +42,22 @@ function getFrameworkDependencies(framework: string | null) {
         include: ['preact'],
         noExternal: ['preact', 'preact-render-to-string'],
       }
-    // case 'react':
-    //   return {
-    //     include: ['react', 'react-dom'],
-    //     noExternal: ['react', 'react-dom'],
-    //   }
+    case 'react':
+      return {
+        include: ['react', 'react-dom'],
+        noExternal: ['react', 'react-dom'],
+      }
+    // TODO:
+    case 'vue':
+      return {
+        include: [],
+        noExternal: [],
+      }
+    case 'solid':
+      return {
+        include: [],
+        noExternal: [],
+      }
     default:
       return {
         include: [],
