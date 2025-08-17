@@ -1,11 +1,9 @@
 # @reddigital/quickstart
 
-> **Bring interactive Svelte, React, Vue, or Preact components into your AdonisJS server-rendered pages — no SPA complexity required.**
+> **Bring interactive Svelte, Preact, or Vue components into your AdonisJS server-rendered pages — no SPA complexity required.**
 
-**@reddigital/quickstart** is an AdonisJS plugin that lets you drop modern frontend components directly into your regular server-side templates.  
-They’re **server-rendered to HTML for SEO & performance** — and then **hydrated on the client** for interactivity.
-
-It's **progressive enhancement** while still being able to use your favorite frontend frameworks without the SPA bloat. Focusing on what they're actually great at: DOM manipulation and managing ui state.
+**@reddigital/quickstart** is an EdgeJS plugin for AdonisJS that lets you drop interactive islands/frontend components directly into your regular server-side templates.  
+They’re **server-rendered to HTML for SEO & performance** - and **hydrated on the client** for interactivity.
 
 ---
 
@@ -19,7 +17,7 @@ It's **progressive enhancement** while still being able to use your favorite fro
 
 ---
 
-## Get Started
+## Install
 
 Install & configure:
 
@@ -28,7 +26,13 @@ npm install @reddigital/quickstart
 node ace configure @reddigital/quickstart
 ```
 
-Here's an example using Svelte.
+Follow the instructions in your terminal to install and configure AdonisJS/Edge with your selected frontend framework.
+
+---
+
+## Getting started
+
+In this example we will use Svelte, but you can adapt the code for your chosen frontend framework.
 
 Create a component in resources/components/counter.svelte:
 
@@ -50,14 +54,15 @@ Use it in an Edge template:
 @vite(['resources/css/app.css', 'resources/js/app.ts'])
 
 <h1>Welcome!</h1>
-@quick('counter', { initialCount: 5 })
+@!quick('counter')
 ```
 
 Build & serve:
 
 ```bash
-npm run build
-node ace serve --watch
+$ npm run dev
+// or
+$ npm run build
 ```
 
 You now have a fully server-rendered page with a hydrated interactive counter.
@@ -67,7 +72,7 @@ You now have a fully server-rendered page with a hydrated interactive counter.
 You can pass data from your server-side templates to your components:
 
 ```
-@quick('counter', { initialCount: 5 })
+@!quick('counter', { initialCount: 5 })
 ```
 
 ## Lazy Loading and Media Queries
@@ -85,6 +90,56 @@ Components can be conditionally loaded based on if they are visible in the viewp
 @quick('heavy-chart', { data: chartData }, { lazy: true, media: '(min-width: 768px)' })
 ```
 
+## How it works
+
+### 1. Server-Side Rendering (SSR)
+
+When you use `@quick('counter', { initialCount: 5 })` in your Edge template:
+
+1. **Component Resolution**: The server dynamically imports your component from the default path (`resources/components`).
+2. **SSR Execution**: Your component is rendered to HTML string using the framework's server renderer.
+3. **HTML Injection**: The rendered HTML is passed to your EdgeJS page template
+4. **Web Component**: On the client side your component is wrapped by a native web-component which loads your script and hydrates the HTML.
+
+### 2. Client-Side Hydration
+
+On the client side:
+
+2. **Selective Loading**: Only the JavaScript for components actually on the page is downloaded
+3. **Progressive Hydration**: Each component is hydrated independently as it becomes needed
+
+### 3. Build Process
+
+Quickstart uses Vite's **multi-build system** to create optimized bundles:
+
+**Client Build**: Creates small, framework-specific bundles for each component. Only loads what's needed.
+
+**SSR Build**: Creates a Node.js-compatible bundle that your AdonisJS server uses to render components to HTML strings.
+
+### 4. Framework Integration
+
+The plugin automatically configures Vite based on your chosen framework
+
+### 5. Development vs Production
+
+**Development**:
+
+- Uses Vite's dev server with HMR for instant component updates
+- Components are transformed on-demand
+
+**Production**:
+
+- Pre-built optimized bundles
+- Tree-shaking removes unused code
+- Components are cached and served efficiently
+
+This architecture gives you:
+
+- **Fast initial page loads** (server-rendered HTML)
+- **Small JavaScript payloads** (only active components)
+- **Framework flexibility** (use React, Vue, Svelte, or Preact)
+- **Progressive enhancement** (works without JavaScript)
+
 ## Enhancing to SPA-like Navigation
 
 If you want your server-rendered app to feel like a single-page application — smooth transitions, no full page reloads — you don’t need to rewrite your entire app.
@@ -92,6 +147,7 @@ If you want your server-rendered app to feel like a single-page application — 
 Two great options that work seamlessly with quickstart:
 
 - Turbo Drive
+
 - Barba.js
 
 Both approaches:
@@ -133,7 +189,3 @@ barba.init({
 ```
 
 For more information on how to install and use Barba.js, visit https://barba.js.org
-
-## Testing
-
-See TESTING.md for how to write and run tests with Japa, including coverage and CLI flags.

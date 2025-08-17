@@ -71,6 +71,28 @@ const adapters: Record<string, FrameworkAdapter> = {
       { stub: 'preact/sample-component.tsx.stub' },
     ],
   },
+  vue: {
+    name: 'vue',
+    displayName: 'Vue',
+    packages: [
+      { name: 'vue', isDevDependency: false },
+      { name: '@vue/server-renderer', isDevDependency: false },
+      { name: '@vitejs/plugin-vue', isDevDependency: true },
+    ],
+    vitePlugins: [
+      {
+        call: 'vue()',
+        imports: [{ isNamed: false, module: '@vitejs/plugin-vue', identifier: 'vue' }],
+      },
+    ],
+    stubs: [
+      { stub: 'config.stub' },
+      { stub: 'vue/app.ts.stub' },
+      { stub: 'vue/ssr.ts.stub' },
+      { stub: 'vue/tsconfig.json.stub' },
+      { stub: 'vue/sample-component.vue.stub' },
+    ],
+  },
 }
 
 /**
@@ -112,7 +134,7 @@ export async function configure(command: Configure) {
   /**
    * Register quickstart plugin in vite config
    */
-  await codemods.registerVitePlugin(`quickStartPlugin({ framework: ${adapter.name} })`, [
+  await codemods.registerVitePlugin(`quickStartPlugin({ framework: '${adapter.name}' })`, [
     {
       isNamed: false,
       module: '@reddigital/quickstart/plugins/vite',
@@ -130,10 +152,15 @@ export async function configure(command: Configure) {
   /**
    * Update adonisjs plugin to include resources/js/app.ts entrypoint
    */
-  await codemods.registerVitePlugin(
-    `adonisjs({ entrypoints: ['resources/css/app.css', 'resources/js/app.ts'], reload: ['resources/views/**/*.edge'] })`,
-    [{ isNamed: false, module: '@adonisjs/vite/client', identifier: 'adonisjs' }]
+  const shouldAddAdonisJSVitePlugin = await command.prompt.confirm(
+    "Do you want to add quickstarts 'adonisjs()' vite configuration?\n\nIf you choose NO make sure to update your vite.config.ts file manually\n\nExample: adonisjs({ entrypoints: ['resources/css/app.css', 'resources/js/app.ts'], reload: ['resources/views/**/*.edge'] })\n\n"
   )
+  if (shouldAddAdonisJSVitePlugin) {
+    await codemods.registerVitePlugin(
+      `adonisjs({ entrypoints: ['resources/css/app.css', 'resources/js/app.ts'], reload: ['resources/views/**/*.edge'] })`,
+      [{ isNamed: false, module: '@adonisjs/vite/client', identifier: 'adonisjs' }]
+    )
+  }
 
   /**
    * Publish framework-specific stub files

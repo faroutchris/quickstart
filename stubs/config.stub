@@ -9,7 +9,6 @@ const quickstartConfig = defineConfig({
    * This affects how the Vite plugin optimizes component discovery
    */
   componentDir: 'resources/js/components',
-  
   /**
    * SSR (Server-Side Rendering) configuration
    */
