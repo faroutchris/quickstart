@@ -21,8 +21,8 @@ export function defineConfig(config: QuickstartConfig): ConfigProvider<Quickstar
       framework: config.framework || 'preact',
       ssr: {
         entryPoint: config.ssr.entryPoint,
-        buildDirectory: 'public/assets',
-        manifestFile: 'public/assets/.vite/manifest.json',
+        buildDirectory: 'ssr',
+        manifestFile: 'ssr/.vite/manifest.json',
       },
     }
   })

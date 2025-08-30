@@ -21,10 +21,10 @@ export class ServerRenderer {
     private config: QuickstartResolvedConfig,
     private vite?: Vite
   ) {
-    // Use the standard Vite manifest location
-    const manifestPath = app.makePath(this.config.ssr.manifestFile)
+    // Only need the SSR manifest for component resolution
+    const ssrManifestPath = app.makePath(this.config.ssr.buildDirectory, '.vite', 'manifest.json')
     this.componentResolver = new ComponentResolver(
-      manifestPath,
+      ssrManifestPath,
       this.config.componentDir,
       this.config.ssr.buildDirectory
     )
@@ -32,22 +32,26 @@ export class ServerRenderer {
 
   private async ssrModule(): Promise<{ default: SSRClientConfig<any> }> {
     if (app.inProduction) {
-      // In production, use the manifest to find the built SSR entry
+      // In production, use the SSR manifest to find the built SSR entry
       try {
-        const manifestPath = app.makePath(this.config.ssr.manifestFile)
-        const manifestContent = await fs.readFile(manifestPath, 'utf-8')
+        const ssrManifestPath = app.makePath(
+          this.config.ssr.buildDirectory,
+          '.vite',
+          'manifest.json'
+        )
+        const manifestContent = await fs.readFile(ssrManifestPath, 'utf-8')
         const manifest = JSON.parse(manifestContent)
 
-        // Debug: Log what's in the manifest
-        debug('Manifest contents:', Object.keys(manifest))
+        debug('SSR manifest path:', ssrManifestPath)
         debug('Looking for SSR entry:', this.config.ssr.entryPoint)
+        debug('Available SSR manifest keys:', Object.keys(manifest))
 
         // Use the SSR entry point path as the key (e.g., "resources/js/ssr.ts")
         const ssrEntry = manifest[this.config.ssr.entryPoint]
         if (!ssrEntry || !ssrEntry.file) {
-          debug('Available manifest keys:', Object.keys(manifest))
+          debug('Available SSR manifest keys:', Object.keys(manifest))
           throw new Error(
-            `SSR entry not found in manifest with key '${this.config.ssr.entryPoint}'`
+            `SSR entry not found in SSR manifest with key '${this.config.ssr.entryPoint}'`
           )
         }
 

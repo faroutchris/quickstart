@@ -44,7 +44,7 @@ export interface QuickstartResolvedConfig {
 }
 
 export interface SSRClientConfig<T> {
-  render(component: T, props: any): string
+  render(component: T, props: any): Promise<string> | string
 }
 
 export interface ClientConfig<T> {

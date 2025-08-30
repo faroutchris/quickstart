@@ -7,7 +7,9 @@
  * file that was distributed with this source code.
  */
 
-import type { Plugin } from 'vite'
+/// <reference types="@vavite/multibuild" />
+
+import type { PluginOption } from 'vite'
 
 export interface QuickstartPluginOptions {
   /**
@@ -26,6 +28,12 @@ export interface QuickstartPluginOptions {
    * Used to detect which dependencies vite needs to optimize
    */
   framework?: 'svelte' | 'preact' | 'vue'
+
+  /**
+   * Output directory for the SSR bundle
+   * @default 'build/ssr'
+   */
+  ssrOutput?: string
 }
 
 function getFrameworkDependencies(framework: string | null) {
@@ -43,7 +51,7 @@ function getFrameworkDependencies(framework: string | null) {
     case 'vue':
       return {
         include: ['vue'],
-        noExternal: ['vue, @vue/server-renderer'],
+        noExternal: ['vue', '@vue/server-renderer'],
       }
     default:
       return {
@@ -53,7 +61,13 @@ function getFrameworkDependencies(framework: string | null) {
   }
 }
 
-export default function quickstartPlugin(options: QuickstartPluginOptions = {}): Plugin {
+export default function quickstartPlugin(options: QuickstartPluginOptions = {}): PluginOption {
+  const ssrEntryPoint = options.ssr ?? 'resources/js/ssr.ts'
+  const componentDir = options.components ?? 'resources/js/components'
+  const framework = options.framework ?? null
+  const ssrOutput = options.ssrOutput ?? 'build/ssr'
+  const frameworkDeps = getFrameworkDependencies(framework)
+
   return {
     name: 'quickstart',
     config: (_, { command }) => {
@@ -61,11 +75,6 @@ export default function quickstartPlugin(options: QuickstartPluginOptions = {}):
       if (command === 'build') {
         process.env.NODE_ENV = 'production'
       }
-
-      // Extract options with defaults
-      const componentDir = options.components ?? 'resources/js/components'
-      const framework = options.framework ?? null
-      const frameworkDeps = getFrameworkDependencies(framework)
 
       return {
         // Configure SSR dependencies to not be externalized
@@ -76,18 +85,29 @@ export default function quickstartPlugin(options: QuickstartPluginOptions = {}):
         // Optimize dependencies for component loading
         optimizeDeps: {
           include: frameworkDeps.include,
-          // Exclude component directory from pre-bundling to allow dynamic imports
           exclude: [componentDir],
         },
-        // Ensure ESM output format for SSR
-        build: {
-          rollupOptions: {
-            preserveEntrySignatures: 'strict',
-            output: {
-              format: 'es',
+        // Define build steps for both client and SSR
+        buildSteps: [
+          {
+            name: 'build-ssr',
+            description: 'Build quickstart server-side rendering assets',
+            config: {
+              build: {
+                ssr: true,
+                outDir: ssrOutput,
+                rollupOptions: {
+                  input: ssrEntryPoint,
+                  preserveEntrySignatures: 'strict',
+                  output: {
+                    format: 'es',
+                    entryFileNames: 'ssr.js',
+                  },
+                },
+              },
             },
           },
-        },
+        ],
       }
     },
   }

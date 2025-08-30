@@ -1,7 +1,7 @@
 {
   "name": "@reddigital/quickstart",
   "description": "Frontend island architecture for Adonisjs",
-  "version": "0.0.36",
+  "version": "0.0.42",
   "engines": {
     "node": ">=20.6.0"
   },
