@@ -10,6 +10,10 @@ const quickstartConfig = defineConfig({
    */
   componentDir: 'resources/js/components',
   /**
+   * This affects what file types are supported in the components folder
+   */
+  framework: 'TODO'
+  /**
    * SSR (Server-Side Rendering) configuration
    */
   ssr: {

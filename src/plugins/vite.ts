@@ -7,8 +7,6 @@
  * file that was distributed with this source code.
  */
 
-/// <reference types="@vavite/multibuild" />
-
 import type { Plugin } from 'vite'
 
 export interface QuickstartPluginOptions {
@@ -65,13 +63,12 @@ export default function quickstartPlugin(options: QuickstartPluginOptions = {}):
       }
 
       // Extract options with defaults
-      const ssrEntryPoint = options.ssr ?? 'resources/js/ssr.ts'
       const componentDir = options.components ?? 'resources/js/components'
-
       const framework = options.framework ?? null
       const frameworkDeps = getFrameworkDependencies(framework)
 
       return {
+        // Configure SSR dependencies to not be externalized
         ssr: {
           noExternal: ['@adonisjs/vite', ...frameworkDeps.noExternal],
           target: 'node',
@@ -82,25 +79,15 @@ export default function quickstartPlugin(options: QuickstartPluginOptions = {}):
           // Exclude component directory from pre-bundling to allow dynamic imports
           exclude: [componentDir],
         },
-        buildSteps: [
-          {
-            name: 'build-ssr',
-            description: 'Build quickstart server-side rendering assets',
-            config: {
-              build: {
-                ssr: true,
-                outDir: 'build/ssr',
-                rollupOptions: {
-                  input: ssrEntryPoint,
-                  preserveEntrySignatures: 'strict',
-                  output: {
-                    format: 'es',
-                  },
-                },
-              },
+        // Ensure ESM output format for SSR
+        build: {
+          rollupOptions: {
+            preserveEntrySignatures: 'strict',
+            output: {
+              format: 'es',
             },
           },
-        ],
+        },
       }
     },
   }

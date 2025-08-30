@@ -10,33 +10,56 @@
 import app from '@adonisjs/core/services/app'
 import { promises as fs } from 'node:fs'
 import { Vite } from '@adonisjs/vite'
-import { QuickstartResolvedConfig, SSRClientConfig } from './types.js'
+import { QuickstartResolvedConfig, SSRClientConfig, getFrameworkExtension } from './types.js'
+import { ComponentResolver } from './component_resolver.js'
 import debug from './debug.js'
 
 export class ServerRenderer {
+  private componentResolver: ComponentResolver
+
   constructor(
     private config: QuickstartResolvedConfig,
     private vite?: Vite
-  ) {}
-
-  locateBundle = async () => {
-    const entryBundle = this.config.ssr.entryPoint
+  ) {
+    // Use the standard Vite manifest location
     const manifestPath = app.makePath(this.config.ssr.manifestFile)
-
-    const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf-8'))
-    const ssrEntry = manifest[entryBundle]
-    if (!ssrEntry || !ssrEntry.file) {
-      throw new Error('SSR bundle not found in manifest')
-    }
-
-    return app.makePath(this.config.ssr.buildDirectory, ssrEntry.file)
+    this.componentResolver = new ComponentResolver(
+      manifestPath,
+      this.config.componentDir,
+      this.config.ssr.buildDirectory
+    )
   }
 
   private async ssrModule(): Promise<{ default: SSRClientConfig<any> }> {
     if (app.inProduction) {
-      const bundlePath = await this.locateBundle()
-      return import(bundlePath)
+      // In production, use the manifest to find the built SSR entry
+      try {
+        const manifestPath = app.makePath(this.config.ssr.manifestFile)
+        const manifestContent = await fs.readFile(manifestPath, 'utf-8')
+        const manifest = JSON.parse(manifestContent)
+
+        // Debug: Log what's in the manifest
+        debug('Manifest contents:', Object.keys(manifest))
+        debug('Looking for SSR entry:', this.config.ssr.entryPoint)
+
+        // Use the SSR entry point path as the key (e.g., "resources/js/ssr.ts")
+        const ssrEntry = manifest[this.config.ssr.entryPoint]
+        if (!ssrEntry || !ssrEntry.file) {
+          debug('Available manifest keys:', Object.keys(manifest))
+          throw new Error(
+            `SSR entry not found in manifest with key '${this.config.ssr.entryPoint}'`
+          )
+        }
+
+        const ssrEntryPath = app.makePath(this.config.ssr.buildDirectory, ssrEntry.file)
+        debug('Loading SSR module from:', ssrEntryPath)
+        return import(ssrEntryPath)
+      } catch (error) {
+        debug('Failed to load SSR module:', error.message)
+        throw new Error(`SSR module not found: ${error.message}`)
+      }
     } else {
+      // In development, use Vite's SSR loading
       const viteServer = this.vite?.getDevServer()
       return viteServer?.ssrLoadModule(this.config.ssr.entryPoint) as Promise<{
         default: SSRClientConfig<any>
@@ -50,7 +73,12 @@ export class ServerRenderer {
   async renderComponent(componentPath: string, props: Record<string, any> = {}) {
     try {
       const ssrModule = await this.ssrModule()
-      const component = await ssrModule.default.resolve(componentPath)
+
+      // Get the file extension based on the framework config
+      const extension = getFrameworkExtension(this.config.framework)
+
+      // Resolve the component using our ComponentResolver
+      const component = await this.componentResolver.resolve(componentPath, extension)
       if (!component) {
         debug('SSR Error:', `Component not found: ${componentPath}`)
         return `<!-- SSR Error: Component not found: ${componentPath} -->`

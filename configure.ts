@@ -150,19 +150,6 @@ export async function configure(command: Configure) {
   }
 
   /**
-   * Update adonisjs plugin to include resources/js/app.ts entrypoint
-   */
-  const shouldAddAdonisJSVitePlugin = await command.prompt.confirm(
-    "Do you want to add quickstarts 'adonisjs()' vite configuration?\n\nIf you choose NO make sure to update your vite.config.ts file manually\n\nExample: adonisjs({ entrypoints: ['resources/css/app.css', 'resources/js/app.ts'], reload: ['resources/views/**/*.edge'] })\n\n"
-  )
-  if (shouldAddAdonisJSVitePlugin) {
-    await codemods.registerVitePlugin(
-      `adonisjs({ entrypoints: ['resources/css/app.css', 'resources/js/app.ts'], reload: ['resources/views/**/*.edge'] })`,
-      [{ isNamed: false, module: '@adonisjs/vite/client', identifier: 'adonisjs' }]
-    )
-  }
-
-  /**
    * Publish framework-specific stub files
    */
   for (const stubConfig of adapter.stubs) {
@@ -184,4 +171,24 @@ export async function configure(command: Configure) {
   } else {
     await codemods.listPackagesToInstall(adapter.packages)
   }
+
+  /**
+   * Provide instructions for updating existing adonisjs plugin
+   */
+  command.logger.info('')
+  command.logger.info('🔧 Manual step required:')
+  command.logger.info(
+    'Please update your existing adonisjs() plugin in vite.config.ts to include the client app.ts entrypoint:'
+  )
+  command.logger.info('')
+  command.logger.info('Before:')
+  command.logger.info(
+    `  adonisjs({ entrypoints: ['resources/css/app.css', 'resources/js/app.js'], ... })`
+  )
+  command.logger.info('')
+  command.logger.info('After:')
+  command.logger.info(
+    `  adonisjs({ entrypoints: ['resources/css/app.css', 'resources/js/app.ts'], ... })`
+  )
+  command.logger.info('')
 }

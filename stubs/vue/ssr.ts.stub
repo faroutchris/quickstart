@@ -8,11 +8,6 @@ import { renderToString } from '@vue/server-renderer'
 import type { SSRClientConfig } from '@reddigital/quickstart/types'
 
 const config: SSRClientConfig<DefineComponent> = {
-  async resolve(componentPath) {
-    const components = import.meta.glob<{ default: DefineComponent }>('../components/**/*.vue')
-    const component = await components['../components/' + componentPath + '.vue']()
-    return component.default
-  },
   render(component, props) {
     const app = createSSRApp(component, props)
     return renderToString(app)

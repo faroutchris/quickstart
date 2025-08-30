@@ -18,10 +18,11 @@ export function defineConfig(config: QuickstartConfig): ConfigProvider<Quickstar
   return configProvider.create(async (_app) => {
     return {
       componentDir: config.componentDir ?? 'resources/js/components',
+      framework: config.framework || 'preact',
       ssr: {
         entryPoint: config.ssr.entryPoint,
-        buildDirectory: 'ssr',
-        manifestFile: 'ssr/.vite/manifest.json',
+        buildDirectory: 'public/assets',
+        manifestFile: 'public/assets/.vite/manifest.json',
       },
     }
   })

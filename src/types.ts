@@ -13,6 +13,9 @@ export interface QuickstartConfig {
   /** Directory where component files live (relative to project root) */
   componentDir?: string
 
+  /** Framework being used (determines component file extensions) */
+  framework?: 'svelte' | 'preact' | 'vue'
+
   /** SSR configuration */
   ssr: {
     /** Path to the SSR entrypoint file */
@@ -23,6 +26,9 @@ export interface QuickstartConfig {
 export interface QuickstartResolvedConfig {
   /** Directory where component files live (relative to project root) */
   componentDir: string
+
+  /** Framework being used (determines component file extensions) */
+  framework: 'svelte' | 'preact' | 'vue'
 
   /** SSR configuration */
   ssr: {
@@ -38,11 +44,26 @@ export interface QuickstartResolvedConfig {
 }
 
 export interface SSRClientConfig<T> {
-  resolve(path: string): Promise<T>
   render(component: T, props: any): string
 }
 
 export interface ClientConfig<T> {
-  resolve: (path: string) => Promise<T>
+  resolve: (path: string, resolver?: (path: string, ext: string) => Promise<T>) => Promise<T>
   hydrate: (component: T, options: { target: HTMLElement; props: any }) => void
+}
+
+/**
+ * Get the file extension for a given framework
+ */
+export function getFrameworkExtension(framework: 'svelte' | 'preact' | 'vue'): string {
+  switch (framework) {
+    case 'svelte':
+      return 'svelte'
+    case 'preact':
+      return 'tsx'
+    case 'vue':
+      return 'vue'
+    default:
+      return 'vue'
+  }
 }
